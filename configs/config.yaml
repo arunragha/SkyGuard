@@ -1,0 +1,90 @@
+# SkyGuard Weather Station Sensor Anomaly Detection Configuration
+
+sensors:
+  temperature:
+    unit: "°C"
+    min: -40.0
+    max: 60.0
+    max_rate_of_change: 5.0 # max delta per 10min
+  humidity:
+    unit: "%"
+    min: 0.0
+    max: 100.0
+    max_rate_of_change: 25.0
+  barometric_pressure:
+    unit: "hPa"
+    min: 800.0
+    max: 1100.0
+    max_rate_of_change: 10.0
+  wind_speed:
+    unit: "m/s"
+    min: 0.0
+    max: 65.0
+    max_rate_of_change: 20.0
+  wind_direction:
+    unit: "degrees"
+    min: 0.0
+    max: 360.0
+    max_rate_of_change: 180.0
+  rainfall:
+    unit: "mm"
+    min: 0.0
+    max: 150.0
+    max_rate_of_change: 50.0
+  solar_radiation:
+    unit: "W/m²"
+    min: 0.0
+    max: 1400.0
+    max_rate_of_change: 500.0
+
+sampling:
+  expected_interval_minutes: 10
+  fill_method: "linear"
+  max_fill_gap_intervals: 6 # maximum 1 hour gap interpolation
+
+features:
+  rolling_windows: [6, 36, 144] # 1 hour, 6 hours, 24 hours in 10-min steps
+  calculate_rates_of_change: true
+  calculate_thermodynamics: true
+  cyclical_encodings: true
+
+models:
+  isolation_forest:
+    enabled: true
+    n_estimators: 150
+    contamination: 0.05
+    random_state: 42
+  autoencoder:
+    enabled: true
+    latent_dim: 8
+    epochs: 25
+    batch_size: 64
+    learning_rate: 0.003
+    architecture: "conv1d" # 'conv1d' or 'dense'
+  statistical:
+    enabled: true
+    hampel_window: 12 # 2 hours
+    n_sigmas: 3.0
+    z_score_window: 36 # 6 hours
+  lof:
+    enabled: true
+    n_neighbors: 20
+    contamination: 0.05
+  ensemble:
+    weights:
+      isolation_forest: 0.30
+      autoencoder: 0.30
+      statistical: 0.25
+      lof: 0.15
+
+thresholding:
+  method: "percentile" # 'percentile' or 'mad'
+  default_sensitivity: 0.5 # Range (0.0, 1.0]
+  percentile_base_quantile: 0.95
+  mad_multiplier_base: 3.0
+
+api:
+  host: "0.0.0.0"
+  port: 8000
+  title: "SkyGuard Weather Station Anomaly Detection API"
+  version: "2.0.0"

@@ -1,0 +1,205 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "SkyGuard Shared Terminology & Design Token Contract",
+  "description": "Single source of truth for severity scales, sensor channels, anomaly archetypes, glyphs, and color tokens shared across UI, CLI, and Backend.",
+  "version": "1.0.0",
+  "severities": {
+    "info": {
+      "id": "info",
+      "label": "Info",
+      "rank": 0,
+      "color": "#3B82F6",
+      "bg_rgba": "rgba(59, 130, 246, 0.15)",
+      "border": "#2563EB",
+      "threshold_condition": "score < threshold",
+      "description": "Nominal observation or sub-threshold advisory; shown only in forensic detail views."
+    },
+    "low": {
+      "id": "low",
+      "label": "Low",
+      "rank": 1,
+      "color": "#22C55E",
+      "bg_rgba": "rgba(34, 197, 94, 0.15)",
+      "border": "#16A34A",
+      "threshold_condition": "threshold <= score < 0.60",
+      "description": "Minor statistical deviation above dynamic threshold."
+    },
+    "medium": {
+      "id": "medium",
+      "label": "Medium",
+      "rank": 2,
+      "color": "#F59E0B",
+      "bg_rgba": "rgba(245, 158, 11, 0.18)",
+      "border": "#D97706",
+      "threshold_condition": "0.60 <= score < 0.80",
+      "description": "Notable anomaly requiring routine operator inspection."
+    },
+    "high": {
+      "id": "high",
+      "label": "High",
+      "rank": 3,
+      "color": "#F97316",
+      "bg_rgba": "rgba(249, 115, 22, 0.20)",
+      "border": "#EA580C",
+      "threshold_condition": "0.80 <= score < 0.90",
+      "description": "High-confidence sensor failure or severe calibration loss."
+    },
+    "critical": {
+      "id": "critical",
+      "label": "Critical",
+      "rank": 4,
+      "color": "#EF4444",
+      "bg_rgba": "rgba(239, 68, 68, 0.25)",
+      "border": "#DC2626",
+      "threshold_condition": "score >= 0.90 or anomaly_type in ['dropout', 'out_of_range']",
+      "description": "Critical sensor outage, hardware dropout, or physical impossibility; triggers visual & audio alerts."
+    }
+  },
+  "anomaly_types": {
+    "spike": {
+      "id": "spike",
+      "label": "Spike",
+      "glyph": "^",
+      "description": "Sudden transient pulse in sensor reading exceeding multi-scale rolling MAD."
+    },
+    "stuck": {
+      "id": "stuck",
+      "label": "Stuck Value",
+      "glyph": "=",
+      "description": "Frozen constant reading over consecutive 10-minute intervals (zero variance)."
+    },
+    "drift": {
+      "id": "drift",
+      "label": "Calibration Drift",
+      "glyph": "/",
+      "description": "Systematic slow divergence from physical climatological expectation and neighboring stations."
+    },
+    "dropout": {
+      "id": "dropout",
+      "label": "Signal Dropout",
+      "glyph": "o",
+      "description": "Zeroed out or null telemetry reading indicating loss of telemetry acquisition."
+    },
+    "out_of_range": {
+      "id": "out_of_range",
+      "label": "Out of Range",
+      "glyph": "!",
+      "description": "Sensor value violates physical atmospheric bounds (e.g. negative solar radiation or >100% RH)."
+    },
+    "multivariate": {
+      "id": "multivariate",
+      "label": "Multivariate Inconsistency",
+      "glyph": "*",
+      "description": "Violation of cross-sensor thermodynamic laws (e.g. high solar radiation at night or dew point > temp)."
+    }
+  },
+  "channels": {
+    "temperature": {
+      "id": "temperature",
+      "name": "Ambient Temperature",
+      "unit": "°C",
+      "min_valid": -50.0,
+      "max_valid": 60.0,
+      "color": "#F43F5E"
+    },
+    "humidity": {
+      "id": "humidity",
+      "name": "Relative Humidity",
+      "unit": "%",
+      "min_valid": 0.0,
+      "max_valid": 100.0,
+      "color": "#06B6D4"
+    },
+    "barometric_pressure": {
+      "id": "barometric_pressure",
+      "name": "Barometric Pressure",
+      "unit": "hPa",
+      "min_valid": 850.0,
+      "max_valid": 1090.0,
+      "color": "#8B5CF6"
+    },
+    "wind_speed": {
+      "id": "wind_speed",
+      "name": "Wind Speed",
+      "unit": "m/s",
+      "min_valid": 0.0,
+      "max_valid": 75.0,
+      "color": "#10B981"
+    },
+    "wind_direction": {
+      "id": "wind_direction",
+      "name": "Wind Direction",
+      "unit": "°",
+      "min_valid": 0.0,
+      "max_valid": 360.0,
+      "color": "#14B8A6"
+    },
+    "rainfall": {
+      "id": "rainfall",
+      "name": "Rainfall",
+      "unit": "mm",
+      "min_valid": 0.0,
+      "max_valid": 250.0,
+      "color": "#3B82F6"
+    },
+    "solar_radiation": {
+      "id": "solar_radiation",
+      "name": "Solar Radiation",
+      "unit": "W/m²",
+      "min_valid": 0.0,
+      "max_valid": 1500.0,
+      "color": "#F59E0B"
+    }
+  },
+  "station_health": {
+    "ok": {
+      "id": "ok",
+      "label": "Operational",
+      "color": "#22C55E",
+      "description": "Station sensors healthy; <2 minor anomalies in last 24h."
+    },
+    "warning": {
+      "id": "warning",
+      "label": "Warning",
+      "color": "#F59E0B",
+      "description": "Elevated anomaly density; intermittent sensor faults detected."
+    },
+    "critical": {
+      "id": "critical",
+      "label": "Critical",
+      "color": "#EF4444",
+      "description": "Active critical sensor failure or dropout requiring technician intervention."
+    },
+    "offline": {
+      "id": "offline",
+      "label": "Offline",
+      "color": "#64748B",
+      "description": "Telemetry feed silent >60 minutes."
+    }
+  },
+  "settings_defaults": {
+    "sensitivity": 1.0,
+    "sensitivity_range": {
+      "min": 0.5,
+      "max": 3.0,
+      "step": 0.1
+    },
+    "models": {
+      "isolation_forest": true,
+      "autoencoder": true,
+      "statistical": true,
+      "lof": true
+    },
+    "theme": "dark",
+    "reduced_motion": false,
+    "sound_enabled": false
+  },
+  "keyboard_shortcuts": {
+    "j": "Move focus down to next incident",
+    "k": "Move focus up to previous incident",
+    "enter": "Open detail drawer for selected incident",
+    "escape": "Close detail drawer / Command palette",
+    "f": "Focus & fly camera to active station on globe",
+    "ctrl_k": "Open Command Palette"
+  }
+}

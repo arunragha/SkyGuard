@@ -1,0 +1,83 @@
+# GitLab CI/CD Pipeline for SkyGuard Anomaly Detection System
+image: python:3.11-slim
+
+variables:
+  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+  PYTHONDONTWRITEBYTECODE: "1"
+  PYTHONUNBUFFERED: "1"
+
+cache:
+  paths:
+    - .cache/pip/
+    - .venv/
+
+stages:
+  - lint
+  - test
+  - build
+
+before_script:
+  - python --version
+  - python -m venv .venv
+  - source .venv/bin/activate
+  - pip install --upgrade pip
+  - pip install torch --index-url https://download.pytorch.org/whl/cpu
+  - pip install -r requirements.txt
+  - pip install flake8 black pytest-cov
+
+# -------------------------------------------------------------
+# Stage: Linting
+# -------------------------------------------------------------
+lint:code-style:
+  stage: lint
+  script:
+    - echo "Running code style and formatting checks..."
+    - flake8 src/ tests/ --max-line-length=120 --ignore=E203,W503,F401
+    - black --check --line-length=120 src/ tests/
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "master"'
+
+# -------------------------------------------------------------
+# Stage: Automated Tests
+# -------------------------------------------------------------
+test:pytest:
+  stage: test
+  script:
+    - echo "Executing unit, integration, and API test suites..."
+    - pytest tests/ -v --cov=src --cov-report=term-missing --cov-report=xml:coverage.xml
+  artifacts:
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage.xml
+    expire_in: 7 days
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "master"'
+
+# -------------------------------------------------------------
+# Stage: Benchmark Verification
+# -------------------------------------------------------------
+test:benchmark:
+  stage: test
+  script:
+    - echo "Running unsupervised algorithm comparison benchmark..."
+    - python -m src.evaluation
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "master"'
+
+# -------------------------------------------------------------
+# Stage: Container Build Smoke Test
+# -------------------------------------------------------------
+build:docker-smoke:
+  stage: build
+  image: docker:24.0.5
+  services:
+    - docker:24.0.5-dind
+  before_script:
+    - docker info
+  script:
+    - docker build -t skyguard-anomaly-detection:${CI_COMMIT_SHORT_SHA} .
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "master"'
